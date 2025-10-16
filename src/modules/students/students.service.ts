@@ -1,0 +1,69 @@
+import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import { PrismaService } from 'src/database/prisma.service';
+import { CreateStudentDto } from './dto/create-student.dto/create-student.dto';
+import { UpdateStudentDto } from './dto/update-student.dto/update-student.dto';
+
+@Injectable()
+export class StudentsService {
+  constructor(private prisma: PrismaService) {}
+
+  async create(data: CreateStudentDto) {
+    const branch = await this.prisma.branch.findUnique({
+      where: { id: data.branch_id },
+    });
+    if (!branch) throw new BadRequestException('Bunday filial mavjud emas');
+
+    return this.prisma.student.create({
+      data: {
+        ...data,
+        birthday: data.birthday ? new Date(data.birthday) : undefined,
+      },
+      include: {
+        branch: { include: { center: true } },
+        studentGroups: true,
+      },
+    });
+  }
+
+  async findAll() {
+    return this.prisma.student.findMany({
+      include: {
+        branch: { include: { center: true } },
+        studentGroups: true,
+      },
+    });
+  }
+
+  async findOne(id: string) {
+    const student = await this.prisma.student.findUnique({
+      where: { id },
+      include: {
+        branch: { include: { center: true } },
+        studentGroups: true,
+      },
+    });
+    if (!student) throw new NotFoundException('Talaba topilmadi');
+    return student;
+  }
+
+  async update(id: string, data: UpdateStudentDto) {
+    const exist = await this.prisma.student.findUnique({ where: { id } });
+    if (!exist) throw new NotFoundException('Talaba topilmadi');
+
+    return this.prisma.student.update({
+      where: { id },
+      data,
+      include: {
+        branch: { include: { center: true } },
+        studentGroups: true,
+      },
+    });
+  }
+
+  async remove(id: string) {
+    const exist = await this.prisma.student.findUnique({ where: { id } });
+    if (!exist) throw new NotFoundException('Talaba topilmadi');
+
+    return this.prisma.student.delete({ where: { id } });
+  }
+}

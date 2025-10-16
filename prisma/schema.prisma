@@ -1,0 +1,164 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Center {
+  id        Int      @id @default(autoincrement())
+  name      String
+  region    String?
+  address   String?
+  phone     String?
+  email     String?
+  branches  Branch[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+
+model Branch {
+  id           Int              @id @default(autoincrement())
+  name         String
+  region       String?
+  district     String?
+  address      String?
+  phone        String?
+  status       BranchStatus
+  center_id    Int?
+  center       Center?          @relation(fields: [center_id], references: [id])
+  rooms        Room[]
+  users        User[]
+  categories   CourseCategory[]
+  courses      Course[]
+  groups       Group[]
+  students     Student[]
+  teachers     Teacher[]
+  StudentGroup StudentGroup[]
+}
+
+enum BranchStatus {
+  ACTIVE
+  INACTIVE
+}
+
+model Room {
+  id        Int     @id @default(autoincrement())
+  branch_id Int
+  name      String
+  capacity  Int
+  branch    Branch  @relation(fields: [branch_id], references: [id])
+  groups    Group[]
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  name      String
+  email     String   @unique
+  phone     String?
+  password  String
+  photo     String?
+  role      UserRole
+  branch_id Int
+  branch    Branch   @relation(fields: [branch_id], references: [id])
+}
+
+enum UserRole {
+  ADMIN
+  MANAGER
+  STAFF
+}
+
+model CourseCategory {
+  id        Int      @id @default(autoincrement())
+  name      String
+  branch_id Int
+  branch    Branch   @relation(fields: [branch_id], references: [id])
+  courses   Course[]
+}
+
+
+model Course {
+  id              Int            @id @default(autoincrement())
+  branch_id       Int
+  category_id     Int
+  name            String
+  status          String
+  price           Float
+  duration_hours  Int?
+  duration_months Int?  
+  description     String?          
+  branch          Branch         @relation(fields: [branch_id], references: [id])
+  category        CourseCategory @relation(fields: [category_id], references: [id])
+  groups          Group[]
+}
+
+model Group {
+  id            Int            @id @default(autoincrement())
+  name          String
+  course_id     Int
+  room_id       Int
+  teacher_id    Int
+  status        String
+  days          String[]
+  start_time    DateTime
+  start_date    DateTime
+  end_date      DateTime
+  branch_id     Int
+  branch        Branch         @relation(fields: [branch_id], references: [id])
+  course        Course         @relation(fields: [course_id], references: [id])
+  room          Room           @relation(fields: [room_id], references: [id])
+  teacher       Teacher        @relation(fields: [teacher_id], references: [id])
+  studentGroups StudentGroup[]
+}
+
+model Student {
+  id            String         @id @default(uuid())
+  fullname      String
+  email         String         @unique
+  password      String
+  phone         String?
+  gender        Gender
+  photo         String?
+  birthday      DateTime?
+  status        String?
+  other_details Json?
+  branch_id     Int
+  branch        Branch         @relation(fields: [branch_id], references: [id])
+  studentGroups StudentGroup[]
+}
+
+enum Gender {
+  MALE
+  FEMALE
+}
+
+model Teacher {
+  id          Int       @id @default(autoincrement())
+  phone       String?
+  email       String?   @unique
+  fullname    String
+  gender      Gender
+  photo       String?
+  birthday    DateTime?
+  password    String
+  branch_id   Int
+  coin        Int?
+  status      String?
+  description String?
+  branch      Branch    @relation(fields: [branch_id], references: [id])
+  groups      Group[]
+}
+
+model StudentGroup {
+  id         Int     @id @default(autoincrement())
+  group_id   Int
+  student_id String
+  branch_id  Int
+  group      Group   @relation(fields: [group_id], references: [id])
+  student    Student @relation(fields: [student_id], references: [id])
+  branch     Branch  @relation(fields: [branch_id], references: [id])
+}

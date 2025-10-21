@@ -5,7 +5,7 @@ import { UpdateStudentDto } from './dto/update-student.dto/update-student.dto';
 
 @Injectable()
 export class StudentsService {
-  constructor(private prisma: PrismaService) {}
+  constructor(private prisma: PrismaService) { }
 
   async create(data: CreateStudentDto) {
     const branch = await this.prisma.branch.findUnique({
@@ -15,8 +15,16 @@ export class StudentsService {
 
     return this.prisma.student.create({
       data: {
-        ...data,
-        birthday: data.birthday ? new Date(data.birthday) : undefined,
+        fullname: data.fullname,
+        email: data.email,
+        password: data.password,
+        phone: data.phone,
+        gender: data.gender,
+        photo: data.photo,
+        birthday: data.birthday ? new Date(data.birthday) : null,
+        status: data.status ?? 'active',
+        other_details: data.other_details ?? {},
+        branch_id: data.branch_id,
       },
       include: {
         branch: { include: { center: true } },
@@ -52,7 +60,10 @@ export class StudentsService {
 
     return this.prisma.student.update({
       where: { id },
-      data,
+      data: {
+        ...data,
+        birthday: data.birthday ? new Date(data.birthday) : undefined,
+      },
       include: {
         branch: { include: { center: true } },
         studentGroups: true,

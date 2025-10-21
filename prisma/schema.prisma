@@ -19,7 +19,6 @@ model Center {
   updatedAt DateTime @updatedAt
 }
 
-
 model Branch {
   id           Int              @id @default(autoincrement())
   name         String
@@ -80,7 +79,6 @@ model CourseCategory {
   courses   Course[]
 }
 
-
 model Course {
   id              Int            @id @default(autoincrement())
   branch_id       Int
@@ -89,8 +87,8 @@ model Course {
   status          String
   price           Float
   duration_hours  Int?
-  duration_months Int?  
-  description     String?          
+  duration_months Int?
+  description     String?
   branch          Branch         @relation(fields: [branch_id], references: [id])
   category        CourseCategory @relation(fields: [category_id], references: [id])
   groups          Group[]
@@ -126,6 +124,7 @@ model Student {
   birthday      DateTime?
   status        String?
   other_details Json?
+  description   String?
   branch_id     Int
   branch        Branch         @relation(fields: [branch_id], references: [id])
   studentGroups StudentGroup[]

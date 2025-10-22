@@ -55,21 +55,25 @@ export class StudentsService {
   }
 
   async update(id: string, data: UpdateStudentDto) {
-    const exist = await this.prisma.student.findUnique({ where: { id } });
-    if (!exist) throw new NotFoundException('Talaba topilmadi');
+    console.log("UPDATE student:", id, data);
+    try {
+      const exist = await this.prisma.student.findUnique({ where: { id } });
+      if (!exist) throw new NotFoundException('Talaba topilmadi');
 
-    return this.prisma.student.update({
-      where: { id },
-      data: {
-        ...data,
-        birthday: data.birthday ? new Date(data.birthday) : undefined,
-      },
-      include: {
-        branch: { include: { center: true } },
-        studentGroups: true,
-      },
-    });
+      const updated = await this.prisma.student.update({
+        where: { id },
+        data: {
+          ...data,
+          birthday: data.birthday ? new Date(data.birthday) : undefined,
+        },
+      });
+      return updated;
+    } catch (err) {
+      console.error("Update xatolik:", err);
+      throw err;
+    }
   }
+
 
   async remove(id: string) {
     const exist = await this.prisma.student.findUnique({ where: { id } });

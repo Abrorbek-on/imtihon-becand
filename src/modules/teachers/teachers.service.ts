@@ -13,7 +13,7 @@ export class TeachersService {
             where: { id: data.branch_id },
         });
         if (!branch) throw new NotFoundException('Bunday filial mavjud emas');
-        
+
 
         return this.prisma.teacher.create({
             data: {
@@ -74,6 +74,26 @@ export class TeachersService {
         const exist = await this.prisma.teacher.findUnique({ where: { id } });
         if (!exist) throw new NotFoundException('Ustoz topilmadi');
 
-        return this.prisma.teacher.delete({ where: { id } });
+        const groups = await this.prisma.group.findMany({
+            where: { teacher_id: id },
+            select: { id: true },
+        });
+
+        const groupIds = groups.map((g) => g.id);
+        if (groupIds.length > 0) {
+            await this.prisma.studentGroup.deleteMany({
+                where: { group_id: { in: groupIds } },
+            });
+        }
+
+        await this.prisma.group.deleteMany({
+            where: { teacher_id: id },
+        });
+
+        return this.prisma.teacher.delete({
+            where: { id },
+        });
     }
+
+
 }
